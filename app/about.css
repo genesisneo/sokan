@@ -1,0 +1,124 @@
+
+* {
+    border: none;
+    outline: none;
+    cursor: default;
+    -webkit-font-smoothing: antialiased;
+    font-smoothing: antialiased;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    tap-highlight-color: rgba(0,0,0,0);
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+    -webkit-touch-callout: none;
+    touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+html,
+body {
+    position: relative;
+    display: block;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: auto;
+    background: #eee;
+    color: #111;
+    font: 16px/normal Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+
+a,
+a:focus,
+a:visited {
+    color: #2196f3;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:active,
+a:hover {
+    color: #349ff5;
+}
+
+#application {
+    position: relative;
+    display: block;
+    margin: 0;
+    padding: 0;
+    width: 320px;
+    height: 320px;
+    border: 1px solid #777;
+}
+
+#application img#app-header {
+    position: relative;
+    display: block;
+    margin: 0 auto 12px;
+    padding: 0;
+    width: 320px;
+    height: 64px;
+    -webkit-pointer-events: none;
+    pointer-events: none;
+}
+
+#application p {
+    position: relative;
+    display: block;
+    margin: 0 auto;
+    padding: 0;
+}
+
+#application p#app-title {
+    font-size: 24px;
+}
+
+#application p#app-version {
+    margin-bottom: 12px;
+    color: #777;
+    font-size: 12px;
+}
+
+#application p#app-version #version {
+    font-weight: normal;
+}
+
+#application p#app-description {
+    margin-bottom: 12px;
+    font-size: 12px;
+}
+
+#application p#app-message {
+    position: relative;
+    display: block;
+    margin: 0 12px 12px;
+    padding: 12px;
+    width: auto;
+    height: 84px;
+    background: #fff;
+    border: 1px solid #ccc;
+    font-size: 12px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    text-align: left;
+}
+
+#close,
+#close:focus,
+#close:visited {
+    position: relative;
+    display: inline-block;
+    margin: 0 auto;
+    padding: 7px 24px;
+    color: #fff;
+    background: #F44336;
+    -webkit-border-radius: 24px;
+    border-radius: 24px;
+    font-size: 14px;
+}
+
+#close:active,
+#close:hover {
+    background: #FE5245;
+}

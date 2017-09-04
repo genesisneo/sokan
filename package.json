@@ -1,0 +1,15 @@
+{
+  "name": "window-control",
+  "productName": "Window Control",
+  "description": "Move and resize windows with ease",
+  "version": "0.1.0",
+  "author": "Neo Genesis",
+  "license": "MIT",
+  "main": "./app/index.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^1.7.5"
+  }
+}
