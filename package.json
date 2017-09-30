@@ -2,12 +2,13 @@
   "name": "window-control",
   "productName": "Window Control",
   "description": "Move and resize windows with ease",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Neo Genesis",
   "license": "MIT",
   "main": "./app/index.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-packager . --asar=true --icon=app/assets/icons/application.ico"
   },
   "devDependencies": {
     "electron": "^1.7.5"

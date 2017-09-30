@@ -23,7 +23,7 @@ body {
     padding: 0;
     width: 100%;
     height: auto;
-    background: #eee;
+    background: none;
     color: #111;
     font: 16px/normal Arial, Helvetica, sans-serif;
     text-align: center;
@@ -43,13 +43,18 @@ a:hover {
 }
 
 #application {
-    position: relative;
+    position: absolute;
     display: block;
-    margin: 0;
+    top: 10px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
     padding: 0;
     width: 320px;
     height: 320px;
+    background: #eee;
     border: 1px solid #777;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.25), 0 4px 8px rgba(0,0,0,0.25), 0 8px 16px rgba(0,0,0,0.25);
 }
 
 #application img#app-header {

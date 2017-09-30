@@ -9,6 +9,30 @@ var tray = null,
 // electron ready
 app.on('ready', function() {
 
+    // BrowserWindow
+    var window = new BrowserWindow({
+        width: 360,
+        height: 360,
+        alwaysOnTop: true,
+        center: true,
+        frame: false,
+        icon: __dirname + '/assets/icons/application.ico',
+        minimizable: false,
+        maximizable: false,
+        movable: false,
+        resizable: false,
+        show: false,
+        skipTaskbar: true,
+        transparent: true,
+        title: package.productName
+    });
+    window.loadURL(`file://${__dirname}/about.html`);
+
+    // BrowserWindow events
+    window.on('blur',  function() {
+        window.hide();
+    });
+
     // systemTray
     tray = new Tray(__dirname + '/assets/icons/application.ico');
     var contextMenu = Menu.buildFromTemplate([
@@ -80,34 +104,8 @@ app.on('ready', function() {
             type: 'normal',
             icon: __dirname + '/assets/icons/application.png',
             click: function() {
-
-                // BrowserWindow
-                var window = new BrowserWindow({
-                    width: 322,
-                    height: 322,
-                    alwaysOnTop: true,
-                    center: true,
-                    frame: false,
-                    icon: __dirname + '/assets/icons/application.ico',
-                    minimizable: false,
-                    maximizable: false,
-                    movable: false,
-                    resizable: false,
-                    show: false,
-                    skipTaskbar: true,
-                    transparent: true,
-                    title: package.productName
-                });
-                window.loadURL(`file://${__dirname}/about.html`);
-
                 // show BrowserWindow
                 window.show();
-
-                // BrowserWindow events
-                window.on('blur',  function() {
-                    window.hide();
-                });
-
             }
         },
         {

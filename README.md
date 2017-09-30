@@ -37,7 +37,7 @@ Move and resize windows with ease. Window control with simple keyboard shortcuts
 * Configure **_winctl_** using `node-gyp configure` and build it by `node-gyp build`
 * Install `electron-rebuild` inside **_winctl_** using `npm i electron-rebuild` and rebuild the whole module by this command `./node_modules/.bin/electron-rebuild`
 * On your prefered **_shell_**, navigate to the **_root_** directory
-* You can now start the application using `npm start`
+* You can now **_start_** the application using `npm start` and **_build_** it using `npm build`
 
 ---
 
