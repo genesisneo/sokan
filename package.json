@@ -2,7 +2,7 @@
   "name": "window-control",
   "productName": "Window Control",
   "description": "Move and resize windows with ease",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "Neo Genesis",
   "license": "MIT",
   "main": "./app/index.js",

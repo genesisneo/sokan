@@ -22,7 +22,7 @@ body {
     margin: 0;
     padding: 0;
     width: 100%;
-    height: auto;
+    height: 100%;
     background: none;
     color: #111;
     font: 16px/normal Arial, Helvetica, sans-serif;
@@ -45,7 +45,7 @@ a:hover {
 #application {
     position: absolute;
     display: block;
-    top: 10px;
+    top: calc(50% - 160px);
     left: 0;
     right: 0;
     margin: 0 auto;

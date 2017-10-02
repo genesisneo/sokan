@@ -21,6 +21,9 @@ exports.windowControl = function(position) {
     screenBounds = activeMonitor.bounds;
     screenWorkAreaSize = activeMonitor.workAreaSize;
 
+    // force window to be on windowed restored mode
+    win.showWindow(winctl.WindowStates.RESTORE);
+
     // set newX, newY, newW, and newH values and consider "margin:0px 7px 7px" window margins
     switch(position) {
 
