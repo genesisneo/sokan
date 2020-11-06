@@ -42,4 +42,5 @@ jspm_packages
 **/thumbs.db
 
 # Local modules
-app/modules/
+buikd/
+dist/
