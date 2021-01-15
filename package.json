@@ -2,7 +2,7 @@
   "name": "sokan",
   "productName": "Sōkan",
   "description": "Easily organize windows without using a mouse.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Neo Genesis",
   "license": "MIT",
   "main": "index.js",
@@ -27,9 +27,8 @@
       "buildResources": "resources"
     },
     "win": {
-      "target": [
-        "portable"
-      ]
+      "requestedExecutionLevel": "requireAdministrator",
+      "target": ["portable"]
     },
     "portable": {
       "artifactName": "sokan.exe"

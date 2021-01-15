@@ -48,7 +48,7 @@ module.exports = function (position) {
 
   // screenBounds
   const screenBounds = activeMonitor.bounds;
-  const screenBoundsX = screenBounds.x * screens.getPrimaryDisplay().scaleFactor;
+  const screenBoundsX = multiplyByScaleFactor(screenBounds.x);
   const screenBoundsY = screenBounds.y;
 
   // screenWorkAreaSize
