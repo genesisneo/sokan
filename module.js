@@ -11,60 +11,65 @@ const user32 = new ffi.Library('user32', {
 
 // create rectangle from pointer
 const pointerToRect = function (rectPointer) {
-  const rect = {};
-  rect.left = rectPointer.readInt16LE(0);
-  rect.top = rectPointer.readInt16LE(4);
-  rect.right = rectPointer.readInt16LE(8);
-  rect.bottom = rectPointer.readInt16LE(12);
-  return rect;
+  return {
+    left: rectPointer.readInt16LE(0),
+    top: rectPointer.readInt16LE(4),
+    right: rectPointer.readInt16LE(8),
+    bottom: rectPointer.readInt16LE(12)
+  };
 }
 
 // obtain window dimension
 const getWindowDimensions = function (handle) {
   const rectPointer = Buffer.alloc(16);
   const getWindowRect = user32.GetWindowRect(handle, rectPointer);
-  if (!getWindowRect) return null;
-  return pointerToRect(rectPointer);
+  return !getWindowRect
+    ? null
+    : pointerToRect(rectPointer);
 }
 
 module.exports = function (position) { 
   // electron screens
   const screens = electron.screen;
   const getCursorScreenPoint = screens.getCursorScreenPoint();
-  const activeMonitor = screens.getAllDisplays().length > 1
+  const primaryDisplayScaleFactor = screens.getPrimaryDisplay().scaleFactor;
+  const { scaleFactor, workArea } = screens.getAllDisplays().length > 1
     // get monitor where mouse is active
     ? screens.getDisplayNearestPoint(getCursorScreenPoint)
     // get the primary monitor
     : screens.getPrimaryDisplay();
 
-  // multiply value by current scale factor
-  const multiplyByScaleFactor = function (value) {
-    return Math.round(value * activeMonitor.scaleFactor);
+  // multiply value by current display scale factor
+  const multiplyByCurrentDisplayScaleFactor = function (value) {
+    return value * scaleFactor;
   };
 
-  // window margin { left: 7, ttop: 0, right: 7, bottom: 7 } + 1px border
-  const singleSideMargin = multiplyByScaleFactor(8 - activeMonitor.scaleFactor);
-  const bothSideMargin = multiplyByScaleFactor(16 - (activeMonitor.scaleFactor * 2));
+  // multiply value by primary display scale factor
+  const multipleByPrimaryDisplayScaleFactor = function (value) {
+    return value < 0
+      ? multiplyByCurrentDisplayScaleFactor(value)
+      : value * primaryDisplayScaleFactor;
+    }
 
-  // screenBounds
-  const screenBounds = activeMonitor.bounds;
-  const screenBoundsX = multiplyByScaleFactor(screenBounds.x);
-  const screenBoundsY = screenBounds.y;
+  // window shadow margin { left: 7, ttop: 0, right: 7, bottom: 7 } + 1px border
+  const singleSideMargin = multiplyByCurrentDisplayScaleFactor(8 - scaleFactor);
+  const bothSideMargin = multiplyByCurrentDisplayScaleFactor(16 - (scaleFactor * 2));
 
-  // screenWorkAreaSize
-  const screenWorkAreaSize = activeMonitor.workAreaSize;
-  const screenWorkAreaSizeWidth = multiplyByScaleFactor(screenWorkAreaSize.width);
-  const screenWorkAreaSizeHeight = multiplyByScaleFactor(screenWorkAreaSize.height);
+  // workArea
+  const wokrAreaX = multipleByPrimaryDisplayScaleFactor(workArea.x);
+  const wokrAreaY = multipleByPrimaryDisplayScaleFactor(workArea.y);
+  const wokrAreaWidth = multiplyByCurrentDisplayScaleFactor(workArea.width);
+  const wokrAreaHeight = multiplyByCurrentDisplayScaleFactor(workArea.height);
 
   // computed bounds
-  const boundsXDefault = screenBoundsX - singleSideMargin;
-  const boundsXMiddle = ((((screenBoundsX + screenWorkAreaSizeWidth) - screenBoundsX) / 2) + screenBoundsX) - singleSideMargin;
-  const boundsYDefault = screenBoundsY;
-  const boundsYMiddle = ((((screenBoundsY + screenWorkAreaSizeHeight) - screenBoundsY) / 2) + screenBoundsY);
-  const boundsWithFull = screenWorkAreaSizeWidth + bothSideMargin;
-  const boundsWidthHalf = (screenWorkAreaSizeWidth / 2) + bothSideMargin;
-  const boundsHeightFull = screenWorkAreaSizeHeight + singleSideMargin;
-  const boundsHeightHalf = (screenWorkAreaSizeHeight / 2) + singleSideMargin;
+  const boundsXDefault = wokrAreaX - singleSideMargin;
+  const boundsXMiddle = ((wokrAreaWidth / 2) + wokrAreaX) - singleSideMargin;
+  const boundsYDefault = wokrAreaY;
+  const boundsYMiddle = ((wokrAreaHeight / 2) + wokrAreaY);
+  const boundsWithFull = wokrAreaWidth + bothSideMargin;
+  const boundsWidthHalf = (wokrAreaWidth / 2) + bothSideMargin;
+  const boundsHeightFull = wokrAreaHeight + singleSideMargin;
+  const boundsHeightHalf = (wokrAreaHeight / 2) + singleSideMargin;
 
   // get active window
   const activeWindow = user32.GetForegroundWindow();
@@ -110,8 +115,8 @@ module.exports = function (position) {
     case 'c':
       const currentWidth = activeWindowDimensions.right - activeWindowDimensions.left;
       const currentHeight = activeWindowDimensions.bottom - activeWindowDimensions.top;
-      const halfScreenWidth = ((((screenBoundsX + screenWorkAreaSizeWidth) - screenBoundsX) / 2) + screenBoundsX);
-      const halfScreenHeight = ((((screenBoundsY + screenWorkAreaSizeHeight) - screenBoundsY) / 2) + screenBoundsY);
+      const halfScreenWidth = ((wokrAreaWidth / 2) + wokrAreaX);
+      const halfScreenHeight = ((wokrAreaHeight / 2) + wokrAreaY);
       bounds.x = halfScreenWidth - (currentWidth / 2);
       bounds.y = halfScreenHeight - (currentHeight / 2);
       bounds.w = currentWidth;
