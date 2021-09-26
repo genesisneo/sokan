@@ -1,10 +1,28 @@
 const { app, BrowserWindow, globalShortcut, Menu, Tray } = require('electron');
 const path = require('path');
+const settings = require('electron-settings');
 const { productName, version } = require('./package.json');
 const windowControl = require('./module.js');
+const isDevelopment = process?.env?.NODE_ENV?.trim() === 'development';
 
 // electron ready
-app.on('ready', function () {
+app.on('ready', async function () {
+
+  if (!isDevelopment) {
+    // get settings openAtLogin, if not available, create a new one
+    const openAtLoginSetting = await settings.get('openAtLogin') || true;
+    await settings.set('openAtLogin', openAtLoginSetting);
+
+    // set electron login settings
+    const appName = path.basename(process?.env?.PORTABLE_EXECUTABLE_FILE || process?.execPath);
+    const appPath = process?.env?.PORTABLE_EXECUTABLE_FILE || path.resolve('.', appName);
+    app.setLoginItemSettings({
+      name: productName,
+      openAtLogin: openAtLoginSetting,
+      openAsHidden: true,
+      path: appPath
+    });
+  }
 
   // BrowserWindow
   const window = new BrowserWindow({

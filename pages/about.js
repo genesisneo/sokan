@@ -1,5 +1,6 @@
 const { remote, shell } = require('electron');
 const { BrowserWindow } = remote;
+const settings = require('electron-settings');
 const { productName, version, description } = require('../package.json');
 
 // hide activeWindow
@@ -8,12 +9,17 @@ const closeWindow = function () {
   activeWindow.hide();
 }
 
-window.addEventListener('load', function () {
+window.addEventListener('load', async function () {
   
   // set package.json values to all dom the requires it
   document.getElementById('app-title').innerHTML = productName;
   document.getElementById('version').innerHTML = version;
   document.getElementById('app-description').innerHTML = description;
+
+  // get settings openAtLogin, if not available, create a new one
+  const openAtLoginSetting = await settings.get('openAtLogin') || true;
+  document.getElementById('openAtLoginSetting').checked = openAtLoginSetting;
+  await settings.set('openAtLogin', openAtLoginSetting);
   
   // if href is equivalent to [http, https, ftp] user electron shell
   const anchors = document.getElementsByTagName('a');
@@ -39,6 +45,15 @@ window.addEventListener('load', function () {
   document.getElementById('close').addEventListener('click', function (event) {
     event.preventDefault();
     closeWindow();
+  });
+
+  // start up settings on change event
+  document.getElementById('openAtLoginSetting').addEventListener('change', async function () {
+    const checkboxValue = document.getElementById('openAtLoginSetting').checked;
+    await settings.set('openAtLogin', checkboxValue);
+    remote.app.setLoginItemSettings({
+      openAtLogin: openAtLoginSetting
+    });
   });
 
 });

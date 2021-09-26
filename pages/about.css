@@ -112,6 +112,11 @@ a:hover {
   font-size: 16px;
 }
 
+#settings {
+  margin: 0 40px 0 0;
+  font-size: 12px;
+}
+
 #close,
 #close:focus,
 #close:visited {

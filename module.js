@@ -6,7 +6,8 @@ const user32 = new ffi.Library('user32', {
   'GetForegroundWindow': ['long', []],
   'ShowWindow': ['bool', ['long', 'int']],
   'GetWindowRect': ['bool', ['long', 'pointer']],
-  'SetWindowPos': ['bool', ['long', 'long', 'int', 'int', 'int', 'int', 'uint']]
+  'SetWindowPos': ['bool', ['long', 'long', 'int', 'int', 'int', 'int', 'uint']],
+  'GetWindowTextA': ['int32', ['int32','string','int32']]
 });
 
 // create rectangle from pointer
@@ -28,12 +29,18 @@ const getWindowDimensions = function (handle) {
     : pointerToRect(rectPointer);
 }
 
+const getWindowTitle = function (handle) {
+  const title = Buffer.alloc(256);
+  const window = user32.GetWindowTextA(handle, title, 256);
+  return title.toString().substr(0, window);
+}
+
 module.exports = function (position) { 
   // electron screens
   const screens = electron.screen;
   const getCursorScreenPoint = screens.getCursorScreenPoint();
   const primaryDisplayScaleFactor = screens.getPrimaryDisplay().scaleFactor;
-  const { scaleFactor, workArea } = screens.getAllDisplays().length > 1
+  const { scaleFactor, depthPerComponent, workArea } = screens.getAllDisplays().length > 1
     // get monitor where mouse is active
     ? screens.getDisplayNearestPoint(getCursorScreenPoint)
     // get the primary monitor
@@ -44,20 +51,21 @@ module.exports = function (position) {
     return value * scaleFactor;
   };
 
-  // multiply value by primary display scale factor
-  const multipleByPrimaryDisplayScaleFactor = function (value) {
-    return value < 0
-      ? multiplyByCurrentDisplayScaleFactor(value)
-      : value * primaryDisplayScaleFactor;
-    }
-
   // window shadow margin { left: 7, ttop: 0, right: 7, bottom: 7 } + 1px border
-  const singleSideMargin = multiplyByCurrentDisplayScaleFactor(8 - scaleFactor);
-  const bothSideMargin = multiplyByCurrentDisplayScaleFactor(16 - (scaleFactor * 2));
+  const singleSideMargin = multiplyByCurrentDisplayScaleFactor(depthPerComponent - scaleFactor);
+  const bothSideMargin = multiplyByCurrentDisplayScaleFactor((depthPerComponent * 2) - (scaleFactor * 2));
 
   // workArea
-  const wokrAreaX = multipleByPrimaryDisplayScaleFactor(workArea.x);
-  const wokrAreaY = multipleByPrimaryDisplayScaleFactor(workArea.y);
+  const wokrAreaX = workArea.x < 0
+    ? workArea.x > -Math.abs(workArea.width) && scaleFactor < primaryDisplayScaleFactor
+      ? -Math.abs(((workArea.x + workArea.width) / primaryDisplayScaleFactor) * scaleFactor)
+      : workArea.x * scaleFactor
+    : workArea.x * primaryDisplayScaleFactor;
+  const wokrAreaY = workArea.y < 0
+    ? workArea.y > -Math.abs(workArea.height) && scaleFactor < primaryDisplayScaleFactor
+      ? -Math.abs((workArea.y + (workArea.height / primaryDisplayScaleFactor)) * scaleFactor)
+      : workArea.y * scaleFactor
+    : workArea.y * primaryDisplayScaleFactor;
   const wokrAreaWidth = multiplyByCurrentDisplayScaleFactor(workArea.width);
   const wokrAreaHeight = multiplyByCurrentDisplayScaleFactor(workArea.height);
 
@@ -73,6 +81,26 @@ module.exports = function (position) {
 
   // get active window
   const activeWindow = user32.GetForegroundWindow();
+  // get active window title and prevent specific windows modals
+  const activeWindowTitle = getWindowTitle(activeWindow);
+  const forbiddenTitles = [
+    'feeds',
+    'search',
+    'cortana',
+    'task view',
+    'snap assist',
+    'action center',
+    'volume control',
+    'task switching',
+    'people bar flyout',
+    'battery information',
+    'network connections',
+    'windows ink workspace',
+    'date and time information'
+  ];
+  if (activeWindowTitle === '' || forbiddenTitles.includes(activeWindowTitle.toLowerCase())) {
+    return false;
+  }
   // get and set window dimension
   const activeWindowDimensions = getWindowDimensions(activeWindow);
   // create bounds object
@@ -174,7 +202,16 @@ module.exports = function (position) {
 
   // force active window to restore mode
   user32.ShowWindow(activeWindow, 9);
-  // set window position based on bounds values
+  // set window position based on bounds values twice
+  user32.SetWindowPos(
+    activeWindow,
+    0,
+    bounds.x,
+    bounds.y,
+    bounds.w,
+    bounds.h,
+    0x4000 | 0x0020 | 0x0020 | 0x0040
+  );
   user32.SetWindowPos(
     activeWindow,
     0,

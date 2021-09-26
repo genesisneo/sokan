@@ -11,6 +11,7 @@ Easily organize windows without using a mouse.
 #### Table of Contents:
 * [Download](#download)
 * [How to setup](#how-to-setup)
+* [Development](#development)
 * [Question](#question)
 
 ---
@@ -69,6 +70,17 @@ npm run package
 
 # build the application
 npm run build
+```
+
+---
+
+## Development
+
+To show developer tool and excute console log. You can add the following code after `window.loadFile`.
+
+```
+window.webContents.openDevTools();
+window.webContents.executeJavaScript(`console.log(">>> ${process.execPath}")`);
 ```
 
 ---
