@@ -11,7 +11,7 @@
     "ffi-napi": "^3.0.1"
   },
   "devDependencies": {
-    "electron": "^10.4.7",
+    "electron": "^11.5.0",
     "electron-builder": "^22.9.1"
   },
   "scripts": {
