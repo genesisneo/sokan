@@ -29,6 +29,7 @@ const getWindowDimensions = function (handle) {
     : pointerToRect(rectPointer);
 }
 
+// get the active window title
 const getWindowTitle = function (handle) {
   const title = Buffer.alloc(256);
   const window = user32.GetWindowTextA(handle, title, 256);
@@ -38,46 +39,37 @@ const getWindowTitle = function (handle) {
 module.exports = function (position) { 
   // electron screens
   const screens = electron.screen;
-  const getCursorScreenPoint = screens.getCursorScreenPoint();
-  const primaryDisplayScaleFactor = screens.getPrimaryDisplay().scaleFactor;
+  // current mouse pointer position
+  const currentMousePosition = screens.getCursorScreenPoint();
   const { scaleFactor, depthPerComponent, workArea } = screens.getAllDisplays().length > 1
     // get monitor where mouse is active
-    ? screens.getDisplayNearestPoint(getCursorScreenPoint)
+    ? screens.getDisplayNearestPoint(currentMousePosition)
     // get the primary monitor
     : screens.getPrimaryDisplay();
-
+  // convert workArea to dip screen rectangle
+  const updatedWorkArea = screens.dipToScreenRect(null, workArea); 
   // multiply value by current display scale factor
   const multiplyByCurrentDisplayScaleFactor = function (value) {
     return value * scaleFactor;
   };
-
-  // window shadow margin { left: 7, ttop: 0, right: 7, bottom: 7 } + 1px border
-  const singleSideMargin = multiplyByCurrentDisplayScaleFactor(depthPerComponent - scaleFactor);
-  const bothSideMargin = multiplyByCurrentDisplayScaleFactor((depthPerComponent * 2) - (scaleFactor * 2));
+  // window shadow margin { left: 7, top: 0, right: 7, bottom: 7 } + 1px border on 100% scale
+  const computedComponentDepth = multiplyByCurrentDisplayScaleFactor(depthPerComponent - scaleFactor);
 
   // workArea
-  const wokrAreaX = workArea.x < 0
-    ? workArea.x > -Math.abs(workArea.width) && scaleFactor < primaryDisplayScaleFactor
-      ? -Math.abs(((workArea.x + workArea.width) / primaryDisplayScaleFactor) * scaleFactor)
-      : workArea.x * scaleFactor
-    : workArea.x * primaryDisplayScaleFactor;
-  const wokrAreaY = workArea.y < 0
-    ? workArea.y > -Math.abs(workArea.height) && scaleFactor < primaryDisplayScaleFactor
-      ? -Math.abs((workArea.y + (workArea.height / primaryDisplayScaleFactor)) * scaleFactor)
-      : workArea.y * scaleFactor
-    : workArea.y * primaryDisplayScaleFactor;
-  const wokrAreaWidth = multiplyByCurrentDisplayScaleFactor(workArea.width);
-  const wokrAreaHeight = multiplyByCurrentDisplayScaleFactor(workArea.height);
+  const workAreaX = updatedWorkArea.x;
+  const workAreaY = updatedWorkArea.y;
+  const workAreaWidth = updatedWorkArea.width;
+  const workAreaHeight = updatedWorkArea.height;
 
   // computed bounds
-  const boundsXDefault = wokrAreaX - singleSideMargin;
-  const boundsXMiddle = ((wokrAreaWidth / 2) + wokrAreaX) - singleSideMargin;
-  const boundsYDefault = wokrAreaY;
-  const boundsYMiddle = ((wokrAreaHeight / 2) + wokrAreaY);
-  const boundsWithFull = wokrAreaWidth + bothSideMargin;
-  const boundsWidthHalf = (wokrAreaWidth / 2) + bothSideMargin;
-  const boundsHeightFull = wokrAreaHeight + singleSideMargin;
-  const boundsHeightHalf = (wokrAreaHeight / 2) + singleSideMargin;
+  const boundsXDefault = workAreaX - computedComponentDepth;
+  const boundsXMiddle = workAreaX - computedComponentDepth + workAreaWidth / 2;
+  const boundsYDefault = workAreaY;
+  const boundsYMiddle = workAreaY + workAreaHeight / 2;
+  const boundsWidthFull = workAreaWidth + (computedComponentDepth * 2);
+  const boundsWidthHalf = workAreaWidth / 2 + (computedComponentDepth * 2);
+  const boundsHeightFull = workAreaHeight + computedComponentDepth;
+  const boundsHeightHalf = workAreaHeight / 2 + computedComponentDepth;
 
   // get active window
   const activeWindow = user32.GetForegroundWindow();
@@ -101,6 +93,7 @@ module.exports = function (position) {
   if (activeWindowTitle === '' || forbiddenTitles.includes(activeWindowTitle.toLowerCase())) {
     return false;
   }
+
   // get and set window dimension
   const activeWindowDimensions = getWindowDimensions(activeWindow);
   // create bounds object
@@ -119,7 +112,7 @@ module.exports = function (position) {
     case 'uh':
       bounds.x = boundsXDefault;
       bounds.y = boundsYDefault;
-      bounds.w = boundsWithFull;
+      bounds.w = boundsWidthFull;
       bounds.h = boundsHeightHalf;
       break;
 
@@ -143,8 +136,8 @@ module.exports = function (position) {
     case 'c':
       const currentWidth = activeWindowDimensions.right - activeWindowDimensions.left;
       const currentHeight = activeWindowDimensions.bottom - activeWindowDimensions.top;
-      const halfScreenWidth = ((wokrAreaWidth / 2) + wokrAreaX);
-      const halfScreenHeight = ((wokrAreaHeight / 2) + wokrAreaY);
+      const halfScreenWidth = ((workAreaWidth / 2) + workAreaX);
+      const halfScreenHeight = ((workAreaHeight / 2) + workAreaY);
       bounds.x = halfScreenWidth - (currentWidth / 2);
       bounds.y = halfScreenHeight - (currentHeight / 2);
       bounds.w = currentWidth;
@@ -171,7 +164,7 @@ module.exports = function (position) {
     case 'lh':
       bounds.x = boundsXDefault;
       bounds.y = boundsYMiddle;
-      bounds.w = boundsWithFull;
+      bounds.w = boundsWidthFull;
       bounds.h = boundsHeightHalf;
       break;
 
@@ -202,7 +195,7 @@ module.exports = function (position) {
 
   // force active window to restore mode
   user32.ShowWindow(activeWindow, 9);
-  // set window position based on bounds values twice
+  // set window position based on bounds values
   user32.SetWindowPos(
     activeWindow,
     0,
@@ -212,13 +205,16 @@ module.exports = function (position) {
     bounds.h,
     0x4000 | 0x0020 | 0x0020 | 0x0040
   );
-  user32.SetWindowPos(
-    activeWindow,
-    0,
-    bounds.x,
-    bounds.y,
-    bounds.w,
-    bounds.h,
-    0x4000 | 0x0020 | 0x0020 | 0x0040
-  );
+  // moving from different screen scales requires re-run of SetWindowPos
+  setTimeout(function () {
+    user32.SetWindowPos(
+      activeWindow,
+      0,
+      bounds.x,
+      bounds.y,
+      bounds.w,
+      bounds.h,
+      0x4000 | 0x0020 | 0x0020 | 0x0040
+    );
+  }, 0);
 }

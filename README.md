@@ -27,7 +27,7 @@ https://github.com/genesisneo/window-control/releases
 
 * This application only works on **_Windows_** operating system
 * Download, Fork, or Clone this repo
-* Download and install [node.js ^12.12.0](https://nodejs.org/en/download/releases/). If you need multiple version you can use [nvm-windows](https://github.com/coreybutler/nvm-windows)
+* Download and install [node.js ^16.10.0](https://nodejs.org/en/download/releases/). If you need multiple version you can use [nvm-windows](https://github.com/coreybutler/nvm-windows)
 * Open your preferred **_shell_**. If your using **_PowerShell_** as Administrator, you need to execute this command
 ```
 Set-ExecutionPolicy RemoteSigned
