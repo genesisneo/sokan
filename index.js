@@ -1,7 +1,17 @@
-const { app, BrowserWindow, globalShortcut, Menu, Tray } = require('electron');
+const {
+  app,
+  BrowserWindow,
+  globalShortcut,
+  Menu,
+  Tray,
+  ipcMain,
+} = require('electron');
 const path = require('path');
 const settings = require('electron-settings');
-const { productName, version } = require('./package.json');
+const {
+  productName,
+  version
+} = require('./package.json');
 const windowControl = require('./module.js');
 const isDevelopment = process?.env?.NODE_ENV?.trim() === 'development';
 
@@ -10,7 +20,7 @@ app.on('ready', async function () {
 
   if (!isDevelopment) {
     // get settings openAtLogin, if not available, create a new one
-    const openAtLoginSetting = await settings.get('openAtLogin') || true;
+    const openAtLoginSetting = await settings.get('openAtLogin') ?? true;
     await settings.set('openAtLogin', openAtLoginSetting);
 
     // set electron login settings
@@ -41,11 +51,10 @@ app.on('ready', async function () {
     transparent: true,
     title: productName,
     webPreferences: {
-      nodeIntegration: true,
-      enableRemoteModule: true
+      preload: path.join(__dirname, 'pages/preload.js')
     }
   });
-  window.loadFile( path.join(__dirname, '/pages/about.html'));
+  window.loadFile( path.join(__dirname, 'pages/about.html'));
 
   // BrowserWindow events
   window.on('blur', function () {
@@ -210,5 +219,19 @@ app.on('ready', async function () {
     function () {
       windowControl('ll');
     });
+
+  // handle window controls via ipc
+  ipcMain.on('hideActiveWindow', function () {
+    window.hide();
+  });
+  ipcMain.handle('getLoginSettings', function (event, key) {
+    return settings.get(key) ?? true;
+  });
+  ipcMain.on('setLoginSettings', async function (event, key, value) {
+    await settings.set(key, value);
+    app.setLoginItemSettings({
+      [key]: value
+    });
+  });
 
 });

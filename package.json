@@ -2,7 +2,7 @@
   "name": "sokan",
   "productName": "Sōkan",
   "description": "Easily organize windows without using a mouse.",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "author": "Neo Genesis",
   "license": "MIT",
   "main": "index.js",
