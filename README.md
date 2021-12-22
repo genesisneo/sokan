@@ -12,6 +12,7 @@ Easily organize windows without using a mouse.
 * [Download](#download)
 * [How to setup](#how-to-setup)
 * [Development](#development)
+* [Task Scheduler](#task-scheduler)
 * [Question](#question)
 
 ---
@@ -23,7 +24,7 @@ https://github.com/genesisneo/window-control/releases
 
 ---
 
-## How to setup:
+## How to setup
 
 * This application only works on **_Windows_** operating system
 * Download, Fork, or Clone this repo
@@ -39,10 +40,6 @@ npm i node-gyp -g
 * Install `windows-build-tools` globally
 ```
 npm i -g --production windows-build-tools --vs2015
-```
-* Once done, you need to configure your **_Python 2.7_**
-```
-npm config set python python2.7
 ```
 * Configure `msvs 2015`
 ```
@@ -85,7 +82,19 @@ window.webContents.executeJavaScript(`console.log(">>> ${process.execPath}")`);
 
 ---
 
-## Question:
+## Task Scheduler
+
+Since the application is not signed, it will not run on Windows start, even if the application is added through `Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run` or `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup`. To run the application on Windows start, we can use Task Scheduler. The `scheduler.bat` file, will create a basic task when **_Run as administrator_**.
+
+Please note that before running this file as administrator, edit the file using Notepad and update the `"C:\PATH\TO\Sokan.exe"` accordingly. See example below.
+
+```
+SCHTASKS /CREATE /SC ONSTART /TN "Sokan" /TR "C:\Program Files\Customization\Sokan.exe" /RL HIGHEST
+```
+
+---
+
+## Question
 
 If you have question, you can always contact me on Twitter [@genesis_neo](https://twitter.com/genesis_neo) and of course here in GitHub [@genesisneo](https://github.com/genesisneo). Thank you.
 
