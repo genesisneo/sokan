@@ -15,6 +15,20 @@ const {
 const windowControl = require('./module.js');
 const isDevelopment = process?.env?.NODE_ENV?.trim() === 'development';
 
+// check if the operating system is Windows
+if (process.platform !== 'win32') {
+  console.error('This application can only run on Windows.');
+  app.quit();
+}
+
+// prevent multiple instances of the app
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+}
+
+// set application user model id
+app.setAppUserModelId("com.neogenesis.sokan");
+
 // electron ready
 app.on('ready', async function () {
 
@@ -51,6 +65,7 @@ app.on('ready', async function () {
     transparent: true,
     title: productName,
     webPreferences: {
+      nodeIntegration: true,
       preload: path.join(__dirname, 'pages/preload.js')
     }
   });
@@ -64,13 +79,13 @@ app.on('ready', async function () {
     // prevent BrowserWindow to flick
     setTimeout(function () {
       window.setOpacity(1);
-    }, 125);
+    }, 123);
   });
   window.on('hide', function () {
     // prevent BrowserWindow to flick
     setTimeout(function () {
       window.setOpacity(0);
-    }, 125);
+    }, 123);
   });
   window.on('will-quit', function () {
     globalShortcut.unregisterAll();
@@ -163,6 +178,7 @@ app.on('ready', async function () {
       label: 'Quit',
       type: 'normal',
       click: function () {
+        app.exit();
         app.quit();
       },
     },

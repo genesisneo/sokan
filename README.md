@@ -10,6 +10,7 @@ Easily organize windows without using a mouse.
 
 #### Table of Contents:
 * [Download](#download)
+* [Support this project](#support-this-project)
 * [How to setup](#how-to-setup)
 * [Development](#development)
 * [Task Scheduler](#task-scheduler)
@@ -20,16 +21,36 @@ Easily organize windows without using a mouse.
 ## Download
 
 You can download the application on the release page.<br />
-https://github.com/genesisneo/window-control/releases
+https://github.com/genesisneo/sokan/releases
+
+---
+
+## Support this project
+
+If you rely on this tool and find it useful, please consider supporting it.<br />
+Maintaining an open-source project takes time and a cup of coffee would be greatly appreciated!
+
+<a href="https://www.buymeacoffee.com/genesisneo" target="_blank">
+  <img
+    src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
+    alt="Buy Me A Coffee"
+    style="height: 64px !important; width: 228px !important;"
+  />
+</a>
 
 ---
 
 ## How to setup
 
-* This application only works on **_Windows_** operating system
+* Please note that this application only works on **_Windows_** operating system
 * Download, Fork, or Clone this repo
-* Download and install [node.js ^16.10.0](https://nodejs.org/en/download/releases/). If you need multiple version you can use [nvm-windows](https://github.com/coreybutler/nvm-windows)
-* Open your preferred **_shell_**. If your using **_PowerShell_** as Administrator, you need to execute this command
+* Download and install [Node.js ^20.12.2](https://nodejs.org/en/download/releases/).<br />
+If you need multiple versions, you can use [nvm-windows](https://github.com/coreybutler/nvm-windows)
+* Install the latest **_Python_** from [Microsoft App Store](https://apps.microsoft.com/search/publisher?name=Python+Software+Foundation).<br />
+I use [Python 3.12](https://www.microsoft.com/store/productId/9NCVDN91XZQP?ocid=pdpshare) when developing this project
+* Install **_Visual Studio 2019_** or later.<br />
+Use the `Desktop development with C++` workload from [Visual Studio Community](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=Community)
+* Open your preferred **_shell_** as Administrator and execute this command
 ```
 Set-ExecutionPolicy RemoteSigned
 ```
@@ -37,23 +58,7 @@ Set-ExecutionPolicy RemoteSigned
 ```
 npm i node-gyp -g
 ```
-* Install `windows-build-tools` globally
-```
-npm i -g --production windows-build-tools --vs2015
-```
-* Configure `msvs 2015`
-```
-npm config set msvs_version 2015
-```
-* Set Python executable path, where `{user}` is your **_Windows_** user name
-```
-npm config set python C:\Users\{user}\.windows-build-tools\python27\python.exe
-```
-* Open **_Environment Variables_** and under **_User variables for Windows_** add `PYTHON` with the value of `%USERPROFILE%\.windows-build-tools\python27\python.exe`
-* Under **_System variables_** add `PY_HOME` with value of `%USERPROFILE%\.windows-build-tools\python27\`
-* On **_System variables_**, look for `Path` and add this values through "Edit text..." `%PY_HOME%;%PY_HOME%\Lib;%PY_HOME%\DLLs;%PY_HOME%\Lib\lib-tk;`
-* Apply all changes, close **_Environment Variables_** and restart your prefered **_shell_**
-* On your prefered **_shell_**, navigate to this repo and install all the dependencies
+* Navigate back to this repo and install all the dependencies
 ```
 npm i
 ```
@@ -62,10 +67,13 @@ npm i
 # start application
 npn run start
 
+# clean the application
+npm run clean
+
 # package the application
 npm run package
 
-# build the application
+# build the portable
 npm run build
 ```
 
@@ -73,7 +81,8 @@ npm run build
 
 ## Development
 
-To show developer tool and excute console log. You can add the following code after `window.loadFile`.
+To show developer tool and excute console log.<br />
+You can add the following code after `window.loadFile`.
 
 ```
 window.webContents.openDevTools();
@@ -84,9 +93,18 @@ window.webContents.executeJavaScript(`console.log(">>> ${process.execPath}")`);
 
 ## Task Scheduler
 
-Since the application is not signed, it will not run on Windows start, even if the application is added through `Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run` or `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup`. To run the application on Windows start, we can use Task Scheduler. The `scheduler.bat` file, will create a basic task when **_Run as administrator_**.
+Since the application is not signed, it will not run on Windows start, even if the application is added on the following:
 
-Please note that before running this file as administrator, edit the file using Notepad and update the `"C:\PATH\TO\Sokan.exe"` accordingly. See example below.
+```
+# registry editor
+Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+# windows startup
+%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
+```
+
+To run the application on Windows start, we can use Task Scheduler. The `scheduler.bat` file, will create a basic task when **_Run as administrator_**.
+
+Please note that before running this file as administrator, edit the file using Notepad or your preferred text editor and update the `"C:\PATH\TO\Sokan.exe"` accordingly. See example below.
 
 ```
 SCHTASKS /CREATE /SC ONSTART /TN "Sokan" /TR "C:\Program Files\Customization\Sokan.exe" /RL HIGHEST

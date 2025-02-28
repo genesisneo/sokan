@@ -2,27 +2,28 @@
   "name": "sokan",
   "productName": "Sōkan",
   "description": "Easily organize windows without using a mouse.",
-  "version": "1.0.5",
+  "version": "2.0.0",
   "author": "Neo Genesis",
   "license": "MIT",
   "main": "index.js",
   "dependencies": {
-    "electron-settings": "^4.0.2",
-    "ffi-napi": "^3.1.0"
+    "electron-settings": "^4.0.4",
+    "koffi": "^2.8.9"
   },
   "devDependencies": {
-    "electron": "^16.0.4",
-    "electron-builder": "^22.14.5"
+    "electron": "^30.0.9",
+    "electron-builder": "^24.13.3"
   },
   "scripts": {
     "start": "set NODE_ENV=development && electron .",
-    "build": "electron-builder",
-    "package": "electron-builder --dir"
+    "clean": "if exist \"dist\" rmdir \"dist\" /q /s",
+    "build": "npm run clean && electron-builder",
+    "package": "npm run clean && electron-builder --dir"
   },
   "build": {
     "productName": "Sōkan",
     "appId": "com.neogenesis.sokan",
-    "copyright": "Copyright © 2021 Neo Genesis.",
+    "copyright": "Copyright © 2025 Neo Genesis.",
     "directories": {
       "output": "dist",
       "buildResources": "resources"

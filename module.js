@@ -1,44 +1,41 @@
 const electron = require('electron');
-const ffi = require('ffi-napi');
+const koffi = require('koffi');
 
-// create foreign function
-const user32 = new ffi.Library('user32', {
-  'GetForegroundWindow': ['long', []],
-  'ShowWindow': ['bool', ['long', 'int']],
-  'GetWindowRect': ['bool', ['long', 'pointer']],
-  'SetWindowPos': ['bool', ['long', 'long', 'int', 'int', 'int', 'int', 'uint']],
-  'GetWindowTextA': ['int32', ['int32','string','int32']]
-});
+// create rect pointer
+const Rect = koffi.struct('Rect', {left: 'ulong', top: 'ulong', right: 'ulong', bottom: 'ulong'});
+const RectPointer = koffi.pointer('RectPointer', 'Rect');
 
-// create rectangle from pointer
-const pointerToRect = function (rectPointer) {
-  return {
-    left: rectPointer.readInt16LE(0),
-    top: rectPointer.readInt16LE(4),
-    right: rectPointer.readInt16LE(8),
-    bottom: rectPointer.readInt16LE(12)
-  };
+// access foreign function
+const library = koffi.load('user32.dll');
+const user32 = {
+  'ShowWindow': library.func('ShowWindow', 'bool', ['long', 'int']),
+  'GetForegroundWindow': library.func('GetForegroundWindow', 'long', []),
+  'GetWindowTextA': library.func('GetWindowTextA', 'int32', ['int32','string','int32']),
+  'GetWindowRect': library.func('GetWindowRect', 'bool', ['long', koffi.out(RectPointer)]),
+  'SetWindowPos': library.func('SetWindowPos', 'bool', ['long', 'long', 'int', 'int', 'int', 'int', 'uint'])
 }
 
 // obtain window dimension
 const getWindowDimensions = function (handle) {
-  const rectPointer = Buffer.alloc(16);
+  const rectPointer = {};
   const getWindowRect = user32.GetWindowRect(handle, rectPointer);
   return !getWindowRect
     ? null
-    : pointerToRect(rectPointer);
+    : rectPointer;
 }
 
 // get the active window title
 const getWindowTitle = function (handle) {
-  const title = Buffer.alloc(256);
-  const window = user32.GetWindowTextA(handle, title, 256);
-  return title.toString().substr(0, window);
+  const buffer = Buffer.allocUnsafe(1024);
+  const window = user32.GetWindowTextA(handle, buffer, 1024);
+  return !window ? '' : koffi.decode(buffer, 'char', window).trim();
 }
 
-module.exports = function (position) { 
+module.exports = function (position) {
+
   // electron screens
   const screens = electron.screen;
+
   // current mouse pointer position
   const currentMousePosition = screens.getCursorScreenPoint();
   const { scaleFactor, depthPerComponent, workArea } = screens.getAllDisplays().length > 1
@@ -46,12 +43,15 @@ module.exports = function (position) {
     ? screens.getDisplayNearestPoint(currentMousePosition)
     // get the primary monitor
     : screens.getPrimaryDisplay();
+
   // convert workArea to dip screen rectangle
-  const updatedWorkArea = screens.dipToScreenRect(null, workArea); 
+  const updatedWorkArea = screens.dipToScreenRect(null, workArea);
+
   // multiply value by current display scale factor
   const multiplyByCurrentDisplayScaleFactor = function (value) {
     return value * scaleFactor;
   };
+
   // window shadow margin { left: 7, top: 0, right: 7, bottom: 7 } + 1px border on 100% scale
   const computedComponentDepth = multiplyByCurrentDisplayScaleFactor(depthPerComponent - scaleFactor);
 
@@ -73,29 +73,40 @@ module.exports = function (position) {
 
   // get active window
   const activeWindow = user32.GetForegroundWindow();
-  // get active window title and prevent specific windows modals
+
+  // get active window title and prevent specific window from moving
   const activeWindowTitle = getWindowTitle(activeWindow);
   const forbiddenTitles = [
     'feeds',
+    'sokan',
     'search',
+    'copilot',
     'cortana',
     'task view',
     'snap assist',
     'action center',
-    'volume control',
+    'quick settings',
     'task switching',
+    'volume control',
     'people bar flyout',
     'battery information',
+    'notification center',
     'network connections',
     'windows ink workspace',
-    'date and time information'
+    'date and time information',
+    'system tray overflow window'
   ];
+
+  console.log(`Window: ${activeWindowTitle.toLowerCase()}`);
+
+  // do not move forbidden window
   if (activeWindowTitle === '' || forbiddenTitles.includes(activeWindowTitle.toLowerCase())) {
     return false;
   }
 
   // get and set window dimension
   const activeWindowDimensions = getWindowDimensions(activeWindow);
+
   // create bounds object
   const bounds = {}
 
@@ -195,6 +206,7 @@ module.exports = function (position) {
 
   // force active window to restore mode
   user32.ShowWindow(activeWindow, 9);
+
   // set window position based on bounds values
   user32.SetWindowPos(
     activeWindow,
@@ -205,6 +217,7 @@ module.exports = function (position) {
     bounds.h,
     0x4000 | 0x0020 | 0x0020 | 0x0040
   );
+
   // moving from different screen scales requires re-run of SetWindowPos
   setTimeout(function () {
     user32.SetWindowPos(
@@ -217,4 +230,5 @@ module.exports = function (position) {
       0x4000 | 0x0020 | 0x0020 | 0x0040
     );
   }, 0);
+
 }
